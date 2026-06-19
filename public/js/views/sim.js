@@ -179,9 +179,117 @@ function avanzarTiempo(container, store) {
   renderSim(container, { store });
 }
 
-// renderDetail se implementa en Task 6.
 function renderDetail(container, store, ticker) {
-  // Stub temporal (Task 6 lo reemplaza). Vuelve a la lista.
-  selectedTicker = null;
-  renderList(container, store);
+  const prices = getPrices(store);
+  const asset = prices.find((a) => a.ticker === ticker);
+  if (!asset) { selectedTicker = null; renderList(container, store); return; }
+
+  const cash = store.get('wallet.cash');
+  const portfolio = store.get('wallet.portfolio') || {};
+  const priceHistory = store.get('market.priceHistory') || {};
+  const holding = portfolio[ticker];
+  const serie = priceHistory[ticker] || [asset.precio];
+  const up = asset.delta >= 0;
+  const sign = up ? '+' : '';
+
+  container.innerHTML = '';
+
+  const back = el('button', {
+    class: 'btn btn-ghost', style: 'width:auto;margin-bottom:12px;padding:8px 14px;',
+    text: '← Volver a la pizarra',
+    onclick: () => { selectedTicker = null; renderSim(container, { store }); },
+  });
+
+  const head = el('div', { style: 'margin-bottom:10px;' }, [
+    el('h2', { text: ticker.split(' ')[0], style: 'margin:0;' }),
+    el('div', { class: 'sub', text: asset.ticker.replace(/^[^(]*/, '').replace(/[()]/g, '') + ' · ' + asset.tipo, style: 'font-size:12px;' }),
+  ]);
+
+  const priceRow = el('div', { style: 'display:flex;align-items:baseline;gap:10px;margin:6px 0 12px;' }, [
+    el('span', { class: 'tnum', text: '$' + asset.precio.toLocaleString('es-AR'), style: 'font-size:26px;font-weight:700;color:var(--gold);' }),
+    el('span', { class: up ? 'pill pill-up' : 'pill pill-down', text: sign + asset.delta + '%' }),
+  ]);
+
+  const chartCard = el('div', { class: 'card' }, [renderLineChart(serie, { color: up ? 'var(--green)' : 'var(--red)' })]);
+  const descCard = el('div', { class: 'card', style: 'font-size:13px;line-height:1.5;color:var(--sub);' }, [el('span', { text: asset.desc || '' })]);
+
+  // Tu posición
+  let posCard;
+  if (holding && holding.cantidad > 0) {
+    const ret = positionReturnPct(holding.precioCompra, asset.precio);
+    const cls = ret >= 0 ? 'pill pill-up' : 'pill pill-down';
+    const rs = ret >= 0 ? '+' : '';
+    posCard = el('div', { class: 'card' }, [
+      el('div', { class: 'sub', text: 'Tu posición', style: 'font-size:11px;font-weight:600;margin-bottom:4px;' }),
+      el('div', { style: 'display:flex;justify-content:space-between;' }, [
+        el('span', { class: 'tnum', text: `${holding.cantidad} u. · compra $${Math.round(holding.precioCompra).toLocaleString('es-AR')}` }),
+        el('span', { class: cls, text: rs + ret.toFixed(1) + '%' }),
+      ]),
+    ]);
+  } else {
+    posCard = el('div', { class: 'sub', text: 'Todavía no tenés este activo.', style: 'font-size:12px;margin:4px 0 10px;' });
+  }
+
+  // Selector de cantidad + montos rápidos
+  const qtyInput = el('input', {
+    type: 'number', min: '1', value: '1',
+    style: 'width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);background:var(--navy);color:var(--fg);margin-bottom:8px;',
+  });
+  const quick = el('div', { style: 'display:flex;gap:8px;margin-bottom:10px;' },
+    [['25%', 0.25], ['50%', 0.5], ['100%', 1]].map(([label, frac]) =>
+      el('button', {
+        class: 'btn btn-ghost', style: 'flex:1;justify-content:center;margin:0;padding:8px;font-size:12px;',
+        text: label,
+        onclick: () => { qtyInput.value = String(Math.max(1, quickAmountQty(cash, asset.precio, frac))); },
+      })));
+
+  const buyBtn = el('button', {
+    class: 'btn btn-primary', style: 'flex:1;justify-content:center;margin:0;',
+    text: 'Comprar', onclick: () => operar(container, store, ticker, 'COMPRA', parseInt(qtyInput.value, 10)),
+  });
+  const sellBtn = el('button', {
+    class: 'btn btn-secondary', style: 'flex:1;justify-content:center;margin:0;',
+    text: 'Vender', onclick: () => operar(container, store, ticker, 'VENTA', parseInt(qtyInput.value, 10)),
+  });
+  const actions = el('div', { style: 'display:flex;gap:10px;' }, [buyBtn, sellBtn]);
+
+  container.append(back, head, priceRow, chartCard, descCard, posCard,
+    el('div', { class: 'sub', text: 'Cantidad a operar', style: 'font-size:11px;font-weight:600;margin-bottom:6px;' }),
+    qtyInput, quick, actions);
+}
+
+// --- Operar por cantidad (preserva cálculos del MVP) ---
+function operar(container, store, ticker, accion, qty) {
+  const prices = getPrices(store);
+  const asset = prices.find((a) => a.ticker === ticker);
+  if (!asset) return;
+  if (!Number.isFinite(qty) || qty < 1) { toast('Ingresá una cantidad válida.'); return; }
+
+  if (accion === 'COMPRA') {
+    const costo = asset.precio * qty;
+    if (store.get('wallet.cash') < costo) { toast('Capital insuficiente.'); return; }
+    store.update((s) => {
+      s.wallet.cash -= costo;
+      const pf = s.wallet.portfolio;
+      if (!pf[ticker]) pf[ticker] = { cantidad: 0, precioCompra: 0 };
+      const h = pf[ticker];
+      const costoAnterior = h.cantidad * h.precioCompra;
+      h.cantidad += qty;
+      h.precioCompra = (costoAnterior + asset.precio * qty) / h.cantidad; // promedio ponderado
+      if (asset.delta > 10) s.behavior.comprasEnAlza = (s.behavior.comprasEnAlza || 0) + 1;
+      s.behavior.comprasTotales = (s.behavior.comprasTotales || 0) + qty;
+      s.behavior.scoreRiesgo = (s.behavior.scoreRiesgo || 0) + asset.pesoRiesgo * qty;
+    });
+    toast(`Compraste ${qty} u. de ${ticker.split(' ')[0]}.`);
+  } else {
+    const pf = store.get('wallet.portfolio') || {};
+    if (!pf[ticker] || pf[ticker].cantidad < qty) { toast('No tenés suficientes unidades.'); return; }
+    store.update((s) => {
+      s.wallet.cash += asset.precio * qty;
+      s.wallet.portfolio[ticker].cantidad -= qty;
+      if (asset.delta < -5) s.behavior.ventasEnBaja = (s.behavior.ventasEnBaja || 0) + 1;
+    });
+    toast(`Vendiste ${qty} u. de ${ticker.split(' ')[0]}.`);
+  }
+  renderDetail(container, store, ticker);
 }
