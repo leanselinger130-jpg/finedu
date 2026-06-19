@@ -36,9 +36,9 @@ export function renderSparkline(series, { width = 56, height = 20, color = 'var(
   return svg;
 }
 
-export function renderLineChart(series, { width = 300, height = 120, color = 'var(--gold)' } = {}) {
+export function renderLineChart(series, { width = 300, height = 120, color = 'var(--gold)', emptyText = 'Sin datos suficientes todavía.' } = {}) {
   if (!Array.isArray(series) || series.length < 2) {
-    return el('div', { class: 'sub center', text: 'Sin datos suficientes todavía.', style: 'padding:24px 0;font-size:12px;' });
+    return el('div', { class: 'sub center', text: emptyText, style: 'padding:24px 0;font-size:12px;line-height:1.5;' });
   }
   const pad = 8;
   const pts = seriesToPoints(series, width, height, pad);

@@ -74,7 +74,7 @@ function renderList(container, store) {
         el('div', { class: 'tnum sub', text: benchSign + benchRet.toFixed(1) + '%', style: 'font-size:13px;font-weight:600;' }),
       ]),
     ]),
-    renderLineChart(valueHistory.map((p) => p.value), { color: retColor }),
+    renderLineChart(valueHistory.map((p) => p.value), { color: retColor, emptyText: 'Operá y avanzá el tiempo para ver tu rendimiento 📈' }),
   ]);
 
   // Cable de noticias
@@ -210,7 +210,7 @@ function renderDetail(container, store, ticker) {
     el('span', { class: up ? 'pill pill-up' : 'pill pill-down', text: sign + asset.delta + '%' }),
   ]);
 
-  const chartCard = el('div', { class: 'card' }, [renderLineChart(serie, { color: up ? 'var(--green)' : 'var(--red)' })]);
+  const chartCard = el('div', { class: 'card' }, [renderLineChart(serie, { color: up ? 'var(--green)' : 'var(--red)', emptyText: 'Avanzá el tiempo para ver la evolución del precio 📈' })]);
   const descCard = el('div', { class: 'card', style: 'font-size:13px;line-height:1.5;color:var(--sub);' }, [el('span', { text: asset.desc || '' })]);
 
   // Tu posición
