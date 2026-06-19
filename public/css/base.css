@@ -1,1 +1,19 @@
-/* base.css — reset, typography, layout */
+/* base.css — reset, tipografía, layout base */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  background: var(--navy);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+  padding-bottom: 84px; /* deja lugar para la nav inferior fija */
+}
+#app-view { max-width: 480px; margin: 0 auto; padding: 20px 16px; min-height: 100dvh; }
+h1, h2, h3 { font-weight: 700; letter-spacing: -.3px; margin-top: 0; }
+.tnum { font-variant-numeric: tabular-nums; }
+.sub { color: var(--sub); }
+.center { text-align: center; }
+a { color: inherit; text-decoration: none; }
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}

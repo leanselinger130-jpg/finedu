@@ -1,1 +1,20 @@
 /* tokens.css — custom properties */
+:root {
+  --navy: #0F172A;
+  --card: #222735;
+  --card-2: #1b2030;
+  --border: #334155;
+  --fg: #F8FAFC;
+  --sub: #94A3B8;
+  --gold: #F59E0B;
+  --gold-2: #FBBF24;
+  --violet: #8B5CF6;
+  --violet-soft: rgba(139,92,246,.18);
+  --violet-border: rgba(139,92,246,.45);
+  --green: #34D399;
+  --red: #F87171;
+
+  --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px;
+  --radius-sm: 9px; --radius-md: 14px; --radius-lg: 18px; --radius-xl: 24px;
+  --shadow: 0 20px 50px rgba(0,0,0,.45);
+}
