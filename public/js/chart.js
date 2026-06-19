@@ -53,6 +53,14 @@ export function renderLineChart(series, { width = 300, height = 120, color = 'va
     points: pts, fill: 'none', stroke: color, 'stroke-width': '2',
     'stroke-linejoin': 'round', 'stroke-linecap': 'round',
   });
-  svg.append(area, line);
+  // min/max value labels
+  const minV = Math.min(...series);
+  const maxV = Math.max(...series);
+  const fmt = (n) => '$' + Math.round(n).toLocaleString('es-AR');
+  const maxLabel = svgEl('text', { x: pad, y: pad + 9, fill: 'var(--sub)', 'font-size': '9', 'font-family': 'IBM Plex Sans, sans-serif' });
+  maxLabel.textContent = fmt(maxV);
+  const minLabel = svgEl('text', { x: pad, y: height - pad - 2, fill: 'var(--sub)', 'font-size': '9', 'font-family': 'IBM Plex Sans, sans-serif' });
+  minLabel.textContent = fmt(minV);
+  svg.append(area, line, maxLabel, minLabel);
   return svg;
 }
