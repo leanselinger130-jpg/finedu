@@ -202,6 +202,8 @@ function ejecutarAccion(ticker, accion, container, store) {
         s.wallet.cash -= asset.precio;
         s.behavior.comprasEnAlza = s.behavior.comprasEnAlza || 0;
         if (asset.delta > 10) s.behavior.comprasEnAlza += 1;
+        s.behavior.comprasTotales = (s.behavior.comprasTotales || 0) + 1;
+        s.behavior.scoreRiesgo = (s.behavior.scoreRiesgo || 0) + asset.pesoRiesgo;
 
         const portfolio = s.wallet.portfolio;
         if (!portfolio[ticker]) {
