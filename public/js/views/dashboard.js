@@ -13,8 +13,8 @@ import { el, clear } from '../ui.js';
 export function renderDashboard(container, { store }) {
   clear(container);
 
-  const metrics = store.get('metrics');
-  const { brokerSim, brokerQuiz, mails, shared, ia, hum } = metrics;
+  const metrics = store.get('metrics') || {};
+  const { brokerSim = 0, brokerQuiz = 0, mails = 0, shared = 0, ia = 0, hum = 0 } = metrics;
 
   // Barra IA vs Humano — fórmula del MVP: 50% neutral cuando no hay datos
   const totalAsesor = ia + hum;

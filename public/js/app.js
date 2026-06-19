@@ -33,3 +33,4 @@ router.start();
 
 const chat = mountChat({ store });
 document.getElementById('ai-fab').addEventListener('click', () => chat.toggle());
+window.addEventListener('finedu:toggle-chat', () => chat.toggle());
