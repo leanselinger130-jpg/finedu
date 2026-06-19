@@ -5,6 +5,7 @@ import { renderSim } from './views/sim.js';
 import { renderQuiz } from './views/quiz.js';
 import { renderLeague } from './views/league.js';
 import { renderDashboard } from './views/dashboard.js';
+import { mountChat } from './views/chat.js';
 
 const store = createStore();
 const container = document.getElementById('app-view');
@@ -30,5 +31,5 @@ function setActiveNav(name) {
 const router = createRouter({ container, routes, onChange: setActiveNav });
 router.start();
 
-document.getElementById('ai-fab').addEventListener('click', () => { location.hash = '#/chat'; });
-// El panel de chat se monta en Task 13; por ahora el FAB navega a una ruta inexistente => cae a home.
+const chat = mountChat({ store });
+document.getElementById('ai-fab').addEventListener('click', () => chat.toggle());
