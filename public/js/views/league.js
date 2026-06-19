@@ -6,7 +6,7 @@
 //
 // Nota: Este es un leaderboard local/sembrado. La integración real con Supabase llega en Fase 3.
 
-import { el } from '../ui.js';
+import { el, clear } from '../ui.js';
 
 // ─── Rivales sembrados (constante local) ────────────────────────────────────
 const RIVALS = [
@@ -16,7 +16,7 @@ const RIVALS = [
 
 // ─── Punto de entrada ────────────────────────────────────────────────────────
 export function renderLeague(container, { store }) {
-  container.innerHTML = '';
+  clear(container);
 
   // Obtener XP del usuario desde el store
   const userXp = store.get('progress.xp') || 0;
@@ -61,5 +61,7 @@ export function renderLeague(container, { store }) {
     onclick: () => { location.hash = '#/home'; },
   });
 
-  container.append(header, subtitle, table, backBtn);
+  // Envolver contenido en .card
+  const card = el('div', { class: 'card' }, [header, subtitle, table, backBtn]);
+  container.append(card);
 }
