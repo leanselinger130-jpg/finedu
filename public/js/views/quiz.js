@@ -245,6 +245,7 @@ function checkAnswer(qData, optionBtns, feedbackBox, btnCheck, btnNext, store, c
 
     if (hearts <= 0) {
       toast('Te quedaste sin vidas. ¡A seguir practicando! 💪');
+      btnCheck.style.display = 'none';
       setTimeout(() => renderHome(container, store), 1800);
       return;
     }
@@ -272,13 +273,21 @@ function advance(container, store) {
 
     const xp = store.get('progress.xp') || 0;
 
+    // Fix 3: fill progress bar to 100% before showing the modal
+    const progressBarEl = container.querySelector('.progress-bar');
+    if (progressBarEl) progressBarEl.style.width = '100%';
+
     confirmModal({
       title: '🎉 ¡Nivel completado!',
       body: `Terminaste el nivel con éxito. Ganaste XP por cada respuesta correcta. Tu XP total: ${xp} puntos.`,
       okText: 'Ver mis logros',
       cancelText: 'Seguir practicando',
     }).then((goBack) => {
-      renderHome(container, store);
+      if (goBack) {
+        location.hash = '#/league';
+      } else {
+        renderQuiz(container, { store });
+      }
     });
   }
 }
