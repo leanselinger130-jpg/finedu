@@ -1,6 +1,7 @@
 import { createStore } from './store.js';
 import { createRouter } from './router.js';
 import { renderHome } from './views/home.js';
+import { renderSim } from './views/sim.js';
 
 const store = createStore();
 const container = document.getElementById('app-view');
@@ -10,7 +11,7 @@ const placeholder = (name) => (c) => { c.innerHTML = `<h2>${name}</h2><p class="
 
 const routes = {
   home: (c) => renderHome(c, { store }),
-  sim: placeholder('Simulador'),
+  sim: (c) => renderSim(c, { store }),
   quiz: placeholder('Aprender'),
   league: placeholder('Liga'),
   dashboard: placeholder('Dashboard del broker'),
