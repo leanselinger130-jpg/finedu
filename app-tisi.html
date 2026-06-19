@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FINEDU · Plataforma</title>
+    <style>
+        :root { 
+            --primary: #1d6fff; 
+            --bg: #f8f9fa; 
+            --duo-green: #58cc02;
+            --duo-green-border: #46a302;
+            --duo-gray: #e5e5e5;
+            --duo-dark: #3c3c3c;
+            --duo-red: #ff4b4b;
+            --duo-orange: #ff9600;
+            --ig-gradient: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+            --ai-purple: #8a2be2;
+        }
+        body { font-family: 'Inter', sans-serif; background: #f1f3f5; padding: 20px; margin: 0; color: var(--duo-dark); padding-bottom: 80px; }
+        .wrapper { max-width: 450px; margin: 20px auto; background: white; padding: 25px; border-radius: 24px; box-shadow: 0 12px 30px rgba(0,0,0,0.08); border: 2px solid var(--duo-gray); position: relative; }
+        .view { display: none; }
+        .active { display: block; }
+        h1, h2, h3 { margin-top: 0; color: var(--duo-dark); font-weight: 800; }
+        
+        button { 
+            width: 100%; 
+            padding: 14px; 
+            margin: 8px 0; 
+            border-radius: 16px; 
+            border: 2px solid #185ad1; 
+            border-bottom: 5px solid #11439e;
+            cursor: pointer; 
+            font-weight: 700; 
+            background: var(--primary); 
+            color: white; 
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.1s ease;
+        }
+        button:active { transform: translateY(3px); border-bottom-width: 2px; }
+        button:hover { filter: brightness(1.05); }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; box-sizing: border-box; border: 2px solid var(--duo-gray); border-radius: 14px; font-size: 14px; font-family: inherit; }
+        hr { border: 0; border-top: 2px solid var(--duo-gray); margin: 20px 0; }
+        
+        .level-selector { background: #ffffff; padding: 18px; border-radius: 20px; margin-bottom: 15px; text-align: left; border: 2px solid var(--duo-gray); border-bottom: 5px solid var(--duo-gray); cursor: pointer; display: flex; align-items: center; justify-content: space-between; }
+        .level-selector:active { transform: translateY(3px); border-bottom-width: 2px; }
+        
+        .quiz-header { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 20px; }
+        .btn-close-quiz { background: none; border: none; color: #afafaf; font-size: 24px; cursor: pointer; width: auto; padding: 0; margin: 0; text-transform: none; }
+        .progress-container { background: var(--duo-gray); border-radius: 12px; height: 16px; flex-grow: 1; overflow: hidden; }
+        .progress-bar { background: var(--duo-green); height: 100%; width: 0%; border-radius: 12px; transition: width 0.3s ease; }
+        .hearts { font-size: 18px; font-weight: bold; color: var(--duo-red); display: flex; align-items: center; gap: 4px; }
+        
+        .option-btn { background: #ffffff; color: var(--duo-dark); border: 2px solid var(--duo-gray); border-bottom: 5px solid var(--duo-gray); text-align: left; text-transform: none; letter-spacing: normal; font-size: 15px; font-weight: 500; }
+        .option-btn:hover { background: #f7f7f7; border-color: #ccc; }
+        .option-btn.selected { border-color: #84d8ff; background: #ddf4ff; border-bottom-color: #1899e2; color: #1899e2; font-weight: 700; }
+        
+        .feedback-box { padding: 15px; border-radius: 16px; margin-top: 15px; display: none; font-weight: 600; font-size: 14px; }
+        .feedback-box.correct { background: #d7ffb8; color: #385a00; border: 2px solid #84d843; }
+        .feedback-box.incorrect { background: #ffdfe0; color: #ea2b2b; border: 2px solid #ff9193; }
+
+        .leaderboard { width: 100%; border-collapse: collapse; margin-top: 10px; background: #fff; border-radius: 16px; overflow: hidden; border: 2px solid var(--duo-gray); }
+        .leaderboard th { background: var(--duo-gray); padding: 10px; font-size: 13px; text-transform: uppercase; color: #666; font-weight: 700; text-align: left; }
+        .leaderboard td { padding: 12px 10px; border-bottom: 1px solid var(--duo-gray); font-size: 14px; font-weight: 600; }
+        .leaderboard .rank { font-weight: 800; color: var(--duo-orange); width: 30px; text-align: center; }
+        .leaderboard .user-row { background: #ddf4ff; color: #1899e2; }
+
+        .btn-instagram { background: var(--ig-gradient); border: none; border-bottom: 5px solid #b51573; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
+        .btn-ai-generate { background: var(--ai-purple); border-color: #6a1b9a; border-bottom-color: #4a148c; }
+
+        /* CHATBOT FLOTANTE HUGGING FACE */
+        #ai-chatbot { position: fixed; bottom: 20px; right: 20px; width: 360px; height: 480px; background: white; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.15); border: 2px solid var(--duo-gray); display: none; flex-direction: column; overflow: hidden; z-index: 9999; }
+        .chat-header { background: var(--ai-purple); color: white; padding: 15px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .chat-messages { flex-grow: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; font-size: 13px; background: #fdfbfa; }
+        .msg { padding: 10px 14px; border-radius: 14px; max-width: 85%; line-height: 1.45; word-wrap: break-word; }
+        .msg.bot { background: #eee; align-self: flex-start; color: var(--duo-dark); }
+        .msg.user { background: var(--ai-purple); color: white; align-self: flex-end; }
+        .msg.loading { background: #f1f3f5; color: #777; font-style: italic; display: flex; align-items: center; gap: 5px; align-self: flex-start; }
+        
+        .typing-dot { width: 6px; height: 6px; background: #777; border-radius: 50%; animation: blink 1.4s infinite both; }
+        .typing-dot:nth-child(2) { animation-delay: .2s; }
+        .typing-dot:nth-child(3) { animation-delay: .4s; }
+        @keyframes blink { 0% { opacity: .2; } 20% { opacity: 1; } 100% { opacity: .2; } }
+
+        .chat-input-area { padding: 8px; display: flex; border-top: 2px solid var(--duo-gray); background: white; gap: 5px; }
+        .chat-input-area input { margin-bottom: 0; flex-grow: 1; border-radius: 10px; padding: 8px; }
+        .chat-input-area button { width: auto; margin: 0; padding: 0 15px; border-radius: 10px; background: var(--ai-purple); border-color:#6a1b9a; border-bottom-width: 2px;}
+        #chat-trigger { position: fixed; bottom: 20px; right: 20px; background: var(--ai-purple); color: white; border: none; width: 60px; height: 60px; border-radius: 50%; box-shadow: 0 4px 15px rgba(138,43,226,0.4); font-size: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 9998; border-bottom: 4px solid #5a189a; }
+        
+        .api-setup-container { padding: 10px; background: #f4ebff; border-bottom: 1px solid var(--duo-gray); font-size: 11px; display: flex; gap: 5px; align-items: center; }
+        .api-setup-container input { padding: 5px; font-size: 11px; margin: 0; border-radius: 6px; }
+        .api-setup-container button { padding: 5px 10px; font-size: 11px; margin: 0; width: auto; text-transform: none; border-radius: 6px; border-bottom-width: 2px; }
+
+        /* ESTILOS SIMULADOR AVANZADO */
+        .market-table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12px; text-align: left; }
+        .market-table th { background: #f1f3f5; padding: 8px; color: #555; font-weight: 700; border-bottom: 2px solid var(--duo-gray); }
+        .market-table td { padding: 6px 8px; border-bottom: 1px solid var(--duo-gray); font-weight: 600; }
+        .btn-action-sim { width: auto; display: inline-block; padding: 4px 8px; font-size: 11px; margin: 2px; border-radius: 6px; border-bottom-width: 2px; text-transform: none; }
+        .badge-delta { padding: 2px 6px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+        .badge-up { background: #e6ffea; color: #008711; }
+        .badge-down { background: #ffebeb; color: #e51a1a; }
+        .news-flash { background: #fff8e1; border: 2px dashed var(--duo-orange); padding: 12px; border-radius: 14px; margin: 10px 0; font-size: 13px; line-height: 1.4; }
+
+        /* PANTALLA PERFIL IA */
+        .risk-badge { display: inline-block; padding: 8px 16px; border-radius: 12px; font-weight: 800; font-size: 16px; text-transform: uppercase; margin-bottom: 15px; }
+        .badge-conservador { background: #e6ffea; color: #46a302; border: 2px solid #84d843; }
+        .badge-moderado { background: #fff4e6; color: var(--duo-orange); border: 2px solid #ffb84d; }
+        .badge-agresivo { background: #ffebeb; color: var(--duo-red); border: 2px solid #ff9193; }
+        .pie-chart-mock { background: #f8f9fa; border: 2px solid var(--duo-gray); border-radius: 16px; padding: 15px; margin: 15px 0; }
+        .pie-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-size: 13px; font-weight: 600; }
+        .pie-color { width: 12px; height: 12px; border-radius: 4px; display: inline-block; margin-right: 6px; }
+
+        /* ESTILOS DEL NUEVO DASHBOARD MEJORADO */
+        .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0; }
+        .dash-card { background: #fafafa; border: 2px solid var(--duo-gray); border-radius: 16px; padding: 12px; text-align: center; }
+        .dash-card-title { font-size: 11px; font-weight: 700; color: #777; text-transform: uppercase; margin-bottom: 4px; }
+        .dash-card-value { font-size: 22px; font-weight: 800; color: var(--duo-dark); }
+        .dash-card.highlight { border-color: #84d8ff; background: #f0f9ff; }
+        .dash-card.highlight .dash-card-value { color: #1899e2; }
+        .dash-progress-container { background: var(--duo-gray); border-radius: 10px; height: 18px; width: 100%; position: relative; overflow: hidden; margin-top: 8px; }
+        .dash-progress-fill { background: var(--ai-purple); height: 100%; width: 0%; transition: width 0.3s ease; }
+        .dash-progress-labels { display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: #555; margin-top: 4px; }
+    </style>
+</head>
+<body>
+
+<div class="wrapper">
+    <div id="home" class="view active">
+        <h1 style="font-size: 32px; color: var(--primary); margin-bottom: 5px;">FINEDU</h1>
+        <p style="font-size: 14px; color: #666; margin-top: 0; margin-bottom: 20px;">Tu entrenamiento financiero dentro del broker.</p>
+        <button onclick="nav('sim')">📈 Simulador de Inversiones</button>
+        <button onclick="nav('quiz-home')">🧠 Quiz Educativo</button>
+        <button style="background:#28a745; border-color: #1e7e34; border-bottom-color: #145523;" onclick="window.open('https://www.invertironline.com/', '_blank')">🏦 Ir al Broker directo</button>
+        
+        <hr>
+        
+        <p style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">¿Preferís?</p>
+        <div style="display: flex; gap: 10px;">
+            <button style="background:#6c757d; border-color:#545b62; border-bottom-color:#343a40; margin: 0;" onclick="trackAsesor('IA')">Asistente IA</button>
+            <button style="background:#6c757d; border-color:#545b62; border-bottom-color:#343a40; margin: 0;" onclick="trackAsesor('Humano')">Asesor Humano</button>
+        </div>
+        
+        <hr>
+        
+        <input type="email" id="mailInput" placeholder="Tu email para enterarte de novedades">
+        <button style="background:#555; border-color:#333; border-bottom-color:#111;" onclick="registrarMail()">Avisar lanzamiento</button>
+        
+        <button style="background:#25D366; border-color:#1ebd59; border-bottom-color:#128c41;" onclick="compartirWhatsApp('¡Estoy compitiendo en la liga de inversión de FINEDU y entrenando mis finanzas en tiempo real! Sumate acá.')">💬 Compartir Comunidad en WhatsApp</button>
+        
+        <button style="background:var(--duo-dark); border-color:#222; border-bottom-color:#000; margin-top: 20px;" onclick="nav('dash')">📊 Ver Dashboard</button>
+    </div>
+
+    <div id="sim" class="view">
+        <h2>Simulador de Estrategia</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#f8f9fa; padding:12px 16px; border-radius:16px; border:2px solid var(--duo-gray); margin-bottom:10px;">
+            <div>
+                <p style="margin:0; font-size:11px; color:#666; font-weight:700;">EFECTIVO DISPONIBLE</p>
+                <b id="balance" style="font-size:18px; color: var(--duo-green);">$100.000</b>
+            </div>
+            <div style="text-align:right;">
+                <p style="margin:0; font-size:11px; color:#666; font-weight:700;">VALOR PORTAFOLIO</p>
+                <b id="portfolio-value" style="font-size:18px; color: var(--primary);">$0</b>
+            </div>
+        </div>
+
+        <div class="news-flash" id="news-container">
+            <b>📰 Cable de Noticias:</b><br>
+            <span id="news-text" style="color: #555;">El mercado arranca en calma. Armá tu posición inicial analizando las empresas antes de avanzar el tiempo.</span>
+        </div>
+
+        <button style="background:var(--duo-orange); border-color:#e68500; border-bottom-color:#cc7600; font-size:13px; padding:11px; margin-bottom:10px;" onclick="avanzarEscenarioMacro()">⏳ Avanzar Tiempo (Simular Noticia y Volatilidad)</button>
+
+        <h3 style="font-size:14px; margin: 10px 0 5px 0; color:#555;">📊 Pizarra de Activos</h3>
+        <table class="market-table">
+            <thead>
+                <tr>
+                    <th>Activo</th>
+                    <th>Precio</th>
+                    <th>Var.</th>
+                    <th style="text-align:right;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="market-prices-body"></tbody>
+        </table>
+
+        <hr style="margin:10px 0;">
+        
+        <h3 style="font-size:14px; margin: 5px 0; color:#555;">💼 Tus Tenencias actuales</h3>
+        <table class="market-table">
+            <thead>
+                <tr>
+                    <th>Activo</th>
+                    <th>Cant.</th>
+                    <th>Compra</th>
+                    <th style="text-align:right;">Rend.</th>
+                </tr>
+            </thead>
+            <tbody id="portfolio-assets-body"></tbody>
+        </table>
+
+        <button id="btn-analizar-perfil" style="background:var(--ai-purple); border-color:#6a1b9a; border-bottom-color:#4a148c; display:none; margin-top:15px;" onclick="calcularYMostrarPerfilNativo()">🤖 Analizar mi Perfil con IA</button>
+
+        <button style="background:#666; border-color:#444; border-bottom-color:#222; margin-top: 10px;" onclick="nav('home')">Volver al Inicio</button>
+    </div>
+
+    <div id="perfil-ia-view" class="view">
+        <h2 style="color: var(--ai-purple);">🤖 Diagnóstico de Perfil (IA)</h2>
+        <p style="font-size: 13px; color: #666; margin-top: -5px; margin-bottom: 20px;">Procesando algoritmos psicométricos según tus decisiones frente al mercado.</p>
+        
+        <div style="text-align: center;">
+            <span style="font-size: 11px; font-weight: bold; color: #777; display: block; margin-bottom: 5px;">TU PERFIL DETECTADO:</span>
+            <div id="risk-badge-element" class="risk-badge">Moderado</div>
+        </div>
+
+        <div style="background: #fdfbfa; border: 2px solid var(--duo-gray); border-radius: 16px; padding: 15px; font-size: 13px; line-height: 1.5;">
+            <b>📌 Dictamen del Motor de IA:</b><br>
+            <span id="perfil-dictamen-texto" style="color: #444;">Analizando transacciones...</span>
+        </div>
+
+        <h3 style="font-size: 15px; margin: 20px 0 5px 0;">💼 Cartera Recomendada (Criterio Graham)</h3>
+        <p style="font-size: 12px; color: #777; margin: 0 0 10px 0;">Estructurada para optimizar el margen de seguridad de tus flujos:</p>
+        
+        <div class="pie-chart-mock" id="cartera-sugerida-lista"></div>
+
+        <button style="background:#28a745; border-color: #1e7e34; border-bottom-color: #145523; margin-top: 20px;" onclick="window.open('https://www.invertironline.com/', '_blank')">🚀 Replicar Cartera en el Broker</button>
+        <button style="background:#666; border-color:#444; border-bottom-color:#222;" onclick="nav('sim')">Volver al Simulador</button>
+    </div>
+
+    <div id="quiz-home" class="view">
+        <h2>Elige tu desafío</h2>
+        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Completa las lecciones interactivas al estilo Duolingo.</p>
+        
+        <div class="level-selector" onclick="startQuiz('principiante')">
+            <div>
+                <h3 style="margin:0; color: var(--duo-green); font-weight: 800;">🟢 Nivel 1: Principiante</h3>
+                <p style="margin:4px 0 0 0; font-size: 13px; color: #666;">Conceptos esenciales, inflación y CEDEARs.</p>
+            </div>
+            <span style="font-size: 20px; color: #ccc;">⚡</span>
+        </div>
+        
+        <div class="level-selector" onclick="startQuiz('intermedio')">
+            <div>
+                <h3 style="margin:0; color: var(--duo-orange); font-weight: 800;">🟡 Nivel 2: Intermedio</h3>
+                <p style="margin:4px 0 0 0; font-size: 13px; color: #666;">Obligaciones Negociables, Tasas y Renta Fija.</p>
+            </div>
+            <span style="font-size: 20px; color: #ccc;">🔒</span>
+        </div>
+
+        <div class="level-selector btn-ai-generate" style="border-bottom-color: #4a148c;" onclick="startQuiz('ia_generado')">
+            <div style="color: white;">
+                <h3 style="margin:0; color: #fff; font-weight: 800;">✨ Nivel Infinito (IA)</h3>
+                <p style="margin:4px 0 0 0; font-size: 13px; color: #e1bff7;">Preguntas aleatorias en tiempo real generadas por el modelo.</p>
+            </div>
+            <span style="font-size: 20px;">🤖</span>
+        </div>
+
+        <div style="margin-top: 25px;">
+            <h3 style="font-size: 18px; margin-bottom: 5px; display: flex; align-items: center; gap: 8px;">🏆 Liga FinEdu (Amigos)</h3>
+            <table class="leaderboard">
+                <thead>
+                    <tr>
+                        <th class="rank">#</th>
+                        <th>Inversor</th>
+                        <th style="text-align: right;">XP</th>
+                    </tr>
+                </thead>
+                <tbody id="leaderboard-body"></tbody>
+            </table>
+            <button class="btn-instagram" style="font-size:13px; padding:10px; margin-top:10px;" onclick="invitarAmigoInstagram()">🔥 Invitar amigo real por Instagram DM</button>
+        </div>
+        
+        <button style="background:#666; border-color:#444; border-bottom-color:#222; margin-top: 15px;" onclick="nav('home')">Volver al Inicio</button>
+    </div>
+
+    <div id="quiz" class="view">
+        <div class="quiz-header">
+            <button class="btn-close-quiz" onclick="if(confirm('¿Seguro querés salir? Perderás el progreso.')) nav('quiz-home')">✕</button>
+            <div class="progress-container">
+                <div id="quiz-progress" class="progress-bar"></div>
+            </div>
+            <div class="hearts">❤️ <span id="heart-count">3</span></div>
+        </div>
+        
+        <p id="q-text" style="font-size: 19px; font-weight: 700; margin-top: 10px; line-height: 1.4;">Pregunta aquí</p>
+        
+        <div id="quiz-options" style="margin-top: 20px;"></div>
+        
+        <div id="quiz-feedback" class="feedback-box"></div>
+        
+        <div id="quiz-actions" style="margin-top: 20px;">
+            <button id="btn-check" style="background:var(--duo-green); border-color:var(--duo-green-border); border-bottom-color:#3d8c02;" onclick="checkSelectedAnswer()">Comprobar</button>
+            <button id="btn-next" style="background:var(--primary); border-color:#185ad1; border-bottom-color:#11439e; display:none;" onclick="nextQuestion()">Continuar</button>
+            <button id="btn-share-friend" class="btn-instagram" style="display:none;" onclick="compartirInstagramLogro('¡Acabo de superar el Nivel de Inteligencia Artificial en FINEDU!')">⚔️ Desafiar amigo en Instagram</button>
+            <button id="btn-broker-quiz" style="background:#28a745; border-color:#1e7e34; border-bottom-color:#145523; display:none;" onclick="stats.brokerQuiz++; window.open('https://www.invertironline.com/', '_blank'); nav('home')">🚀 Aplicar en el Broker</button>
+        </div>
+    </div>
+
+    <div id="dash" class="view">
+        <h2>Reporte de Impacto</h2>
+        <p style="color: #666; font-size: 13px; margin-top: -5px; margin-bottom: 15px;">Panel exclusivo para traccionar conversión, captación y analíticas de comportamiento.</p>
+        
+        <div class="dash-grid">
+            <div class="dash-card highlight">
+                <div class="dash-card-title">Clicks Broker (Sim)</div>
+                <div class="dash-card-value" id="d-sim">0</div>
+            </div>
+            <div class="dash-card highlight">
+                <div class="dash-card-title">Clicks Broker (Quiz)</div>
+                <div class="dash-card-value" id="d-quiz">0</div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-card-title">Mails Capturados</div>
+                <div class="dash-card-value" id="d-mails">0</div>
+            </div>
+            <div class="dash-card">
+                <div class="dash-card-title">Compartido (IG/WA)</div>
+                <div class="dash-card-value" id="d-share">0</div>
+            </div>
+        </div>
+
+        <div style="background: #fafafa; border: 2px solid var(--duo-gray); border-radius: 16px; padding: 15px; margin: 15px 0;">
+            <div class="dash-card-title" style="text-align: left; margin-bottom: 8px;">Preferencia de Asesoría</div>
+            <div class="dash-progress-container">
+                <div class="dash-progress-fill" id="dash-ia-bar"></div>
+            </div>
+            <div class="dash-progress-labels">
+                <span>🤖 IA: <span id="n-ia">0</span></span>
+                <span>👨‍💼 Humano: <span id="n-hum">0</span></span>
+            </div>
+        </div>
+
+        <button style="background:var(--duo-dark); border-color:#222; border-bottom-color:#000; margin-top: 10px;" onclick="nav('home')">Volver al Inicio</button>
+    </div>
+</div>
+
+<button id="chat-trigger" onclick="toggleChat()">💬</button>
+<div id="ai-chatbot">
+    <div class="chat-header">
+        <span>✨ Asesor Financiero (Qwen 2.5 Real)</span>
+        <span style="cursor:pointer;" onclick="toggleChat()">✕</span>
+    </div>
+    
+    <div class="chat-messages" id="chat-box">
+        <div class="msg bot">¡Hola!. Podés consultarme sobre balances, CEDEARs, Obligaciones Negociables o activos como $MELI o $VIST.</div>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="chat-input" placeholder="Preguntale a la IA..." onkeypress="if(event.key === 'Enter') enviarConsultaAI()">
+        <button id="btn-send-chat" onclick="enviarConsultaAI()">👉</button>
+    </div>
+</div>
+
+<script>
+    const TU_USUARIO_INSTAGRAM = "finedu.app";
+    let stats = { bal: 100000, brokerSim: 0, brokerQuiz: 0, ia: 0, hum: 0, mails: 0, shared: 0 };
+    
+    let amigosCompetencia = [
+        { nombre: "Santi_Inversiones", xp: 250, isUser: false },
+        { nombre: "Vos (Inversor)", xp: 0, isUser: true },
+        { nombre: "Flor.Finanzas", xp: 180, isUser: false }
+    ];
+
+    let mercadoActivos = [
+        { ticker: "SPY (S&P 500)", tipo: "ETF CEDEAR", precio: 12000, delta: 0, pesoRiesgo: 2 },
+        { ticker: "QQQ (Nasdaq)", tipo: "ETF CEDEAR", precio: 15000, delta: 0, pesoRiesgo: 3 },
+        { ticker: "GOOGL (Google)", tipo: "CEDEAR Tech", precio: 8000, delta: 0, pesoRiesgo: 3 },
+        { ticker: "MSFT (Microsoft)", tipo: "CEDEAR Tech", precio: 16000, delta: 0, pesoRiesgo: 3 },
+        { ticker: "MELI (Mercado Libre)", tipo: "CEDEAR Latam", precio: 25000, delta: 0, pesoRiesgo: 4 },
+        { ticker: "VIST (Vista Energy)", tipo: "CEDEAR O&G", precio: 11000, delta: 0, pesoRiesgo: 4 },
+        { ticker: "YMCXO (YPF ON)", tipo: "ON Dólar Cable", precio: 5000, delta: 0, pesoRiesgo: 1 }
+    ];
+    
+    let portafolioUsuario = {};
+    let turnosJugados = 0;
+    
+    let scoreRiesgoAcumulado = 0; 
+    let comprasTotales = 0;
+    let ventasEnBaja = 0; 
+    let comprasEnAlza = 0; 
+
+    const poolNoticias = [
+        { id: 1, text: "⚠️ TENSIONES GEOPOLÍTICAS: Conflicto armado en Medio Oriente bloquea refinerías.", impacto: { "VIST (Vista Energy)": 20, "SPY (S&P 500)": -6, "QQQ (Nasdaq)": -8, "GOOGL (Google)": -4 } },
+        { id: 2, text: "📊 BALANCES TECH: Microsoft ($MSFT) reporta ingresos por Inteligencia Artificial un 40% arriba.", impacto: { "MSFT (Microsoft)": 15, "QQQ (Nasdaq)": 7, "GOOGL (Google)": 4 } },
+        { id: 3, text: "💸 DATO INFLACIÓN ARG: El IPC sale más bajo de lo previsto. Sube el consumo local.", impacto: { "MELI (Mercado Libre)": 14, "YMCXO (YPF ON)": 2 } },
+        { id: 4, text: "🦅 DECISIÓN DE LA FED: La Reserva Federal sube la tasa de interés sorpresivamente.", impacto: { "QQQ (Nasdaq)": -10, "SPY (S&P 500)": -6, "MELI (Mercado Libre)": -9, "YMCXO (YPF ON)": 4 } },
+        { id: 5, text: "🤝 ACUERDO COMERCIAL: Mercado Libre cierra alianza logística en Brasil blindando márgenes.", impacto: { "MELI (Mercado Libre)": 18 } }
+    ];
+
+    const quizData = { 
+        principiante: [ 
+            { q: "¿Qué es un CEDEAR?", options: ["Un certificado de acciones extranjeras en pesos", "Un bono del gobierno nacional"], correct: 0, explain: "Te permite invertir en pesos en empresas globales." },
+            { q: "Según Benjamin Graham, ¿cuál es el peor enemigo del inversor?", options: ["La volatilidad normal", "Él mismo y sus emociones", "El agente de bolsa"], correct: 1, explain: "El pánico y la codicia arruinan los rendimientos a largo plazo." },
+            { q: "¿Cuál es el objetivo principal del 'Margen de Seguridad'?", options: ["Garantizar ganancias del 100%", "Limitar el riesgo ante errores de estimación o crisis", "Hacer trading diario rápido"], correct: 1, explain: "Comprar por debajo del valor intrínseco te protege de imprevistos." },
+            { q: "¿Qué representa el ticker o símbolo de un activo?", options: ["Un código único que identifica la empresa en el mercado", "La clave de seguridad de tu cuenta"], correct: 0, explain: "Por ejemplo, MELI representa a Mercado Libre." },
+            { q: "Si invertís en un CEDEAR de Microsoft ($MSFT), ¿qué riesgo principal disminuís?", options: ["El riesgo de devaluación del peso argentino", "El riesgo tecnológico global"], correct: 0, explain: "Al estar atados al dólar CCL, te cubren de la pérdida de valor del peso." },
+            { q: "¿Qué significa diversificar tu cartera de inversión?", options: ["Poner todo tu dinero en la empresa que más subió ayer", "Repartir el capital en diferentes activos e industrias"], correct: 1, explain: "No poner todos los huevos en la misma canasta reduce el riesgo." },
+            { q: "¿Qué es la inflación?", options: ["La suba generalizada y sostenida de los precios", "El interés que te paga el banco por un plazo fijo"], correct: 0, explain: "Destruye el poder de compra del dinero que se deja quieto bajo el colchón." },
+            { q: "¿Quién es el inversor inteligente según el libro de Graham?", options: ["El que predice el futuro con gráficos", "El que actúa de forma realista y disciplinada sin dejarse llevar por el mercado"], correct: 1, explain: "La paciencia y el análisis baten al optimismo ciego." },
+            { q: "Si una acción baja de precio pero sus fundamentos siguen sólidos, Graham aconseja:", options: ["Vender todo por miedo", "Verlo como una oportunidad de compra (rebaja)", "No hacer nada y quejarse"], correct: 1, explain: "El mercado a corto plazo es una máquina de votar, a largo plazo es una balanza de pesar." },
+            { q: "¿Qué liquidez tiene un activo financiero?", options: ["La facilidad para transformarlo en dinero en efectivo sin perder valor", "La cantidad de dividendos que paga al año"], correct: 0, explain: "Activos con mucha liquidez se venden rápido en el mercado." }
+        ], 
+        intermedio: [
+            { q: "¿Qué representa una Obligación Negociable (ON)?", options: ["Una parte de la propiedad de la firma", "Deuda emitida por una empresa privada"], correct: 1, explain: "Las ONs son renta fija de corporaciones que pagan intereses periódicos." },
+            { q: "¿Qué significa que una ON sea 'Hard Dollar'?", options: ["Que se paga exclusivamente en pesos al tipo de cambio oficial", "Que tanto los cupones como el capital se pagan en dólares billete"], correct: 1, explain: "Te permiten dolarizar tus flujos de fondos de manera genuina y predecible." },
+            { q: "Si el 'Riesgo País' de Argentina sube, ¿qué le suele pasar al precio de los bonos argentinos?", options: ["El precio sube porque rinden más", "El precio baja porque aumenta el riesgo de default percibido"], correct: 1, explain: "A mayor riesgo, el mercado exige más tasa, lo que desploma el precio del bono." },
+            { q: "¿Qué mide el ratio P/E (Price-to-Earnings)?", options: ["La relación entre el precio de la acción y la ganancia neta por acción", "El porcentaje de dividendos repartidos"], correct: 0, explain: "Te indica cuántos años de ganancias estás pagando al comprar la acción." },
+            { q: "Si Vista Energy ($VIST) presenta un aumento fuerte de EBITDA, significa que:", options: ["Su ganancia operativa antes de intereses, impuestos y depreciaciones mejoró", "Tiene más deudas que antes"], correct: 0, explain: "El EBITDA es clave para ver la salud operativa y la caja de una petrolera." },
+            { q: "¿Qué es el valor intrínseco de una empresa?", options: ["El precio de cotización en la pantalla hoy", "El valor real estimado mediante el análisis de sus fundamentos y flujos futuros"], correct: 1, explain: "El precio es lo que pagás, el valor es lo que obtenés." },
+            { q: "La regla 75/25 de asignación de activos de Graham sugiere:", options: ["Tener entre 25% y 75% en acciones, y el resto en bonos según el momento de mercado", "Invertir siempre 75% en criptomonedas"], correct: 0, explain: "Mantiene el equilibrio dinámico y la cordura defensiva ante mercados extremos." },
+            { q: "¿Cuál es la principal ventaja de los ETF CEDEARs como el SPY?", options: ["Comprar las 500 empresas de EE.UU. diversificadas en una sola operación", "Que nunca tienen jornadas de baja"], correct: 0, explain: "Invertís en el índice más importante del mundo de manera simple desde Argentina." },
+            { q: "¿Qué es el cupón de un bono corporativo?", options: ["Un descuento para comprar productos de la empresa", "El interés periódico que paga el emisor a los inversores"], correct: 1, explain: "Es el flujo constante de renta fija acordado en las condiciones de emisión." },
+            { q: "Si una empresa tiene un flujo de caja libre (Free Cash Flow) negativo recurrente, es un riesgo porque:", options: ["No está generando caja real para sostener su operación o pagar deudas", "Reparte demasiados dividendos"], correct: 0, explain: "Sin caja libre, la supervivencia a largo plazo se vuelve insostenible." }
+        ], 
+        ia_generado: [
+            { q: "Si la inflación esperada sube, ¿qué estrategia se alinea con la preservación del capital de Graham?", options: ["Quedarse en pesos líquidos", "Diversificar en activos de valor real (CEDEARs) o bonos duros (ONs)", "Comprar acciones hiper volátiles sin mirar el balance"], correct: 1, explain: "La preservación del capital exige salir del riesgo de moneda local e ir a flujos líquidos dolarizados." },
+            { q: "¿Qué significa que Mercado Libre ($MELI) o Vista ($VIST) posean un sólido 'Foso Defensivo'?", options: ["Que tienen ventajas competitivas únicas difíciles de copiar", "Que su cotización nunca baja de precio", "Que operan exclusivamente dentro de Argentina"], correct: 0, explain: "Un foso defensivo (Moat) protege los márgenes netos de la firma frente a la competencia." },
+            { q: "Si el motor de IA detecta que vendés activos ante una noticia de pánico de corto plazo, ¿cómo clasificará tu perfil?", options: ["Agresivo de Valor", "Conservador / Reactivo emocional", "Inversor Institucional"], correct: 1, explain: "Operar por el ruido del cable de noticias en vez de los balances demuestra un perfil guiado por volatilidad." },
+            { q: "¿Cómo afecta una suba de tasas de la Reserva Federal (FED) a empresas de crecimiento con flujos futuros lejanos?", options: ["Aumenta su valor de mercado inmediatamente", "Disminuye su valor presente al descontar flujos futuros con una tasa más alta", "No tiene ningún impacto"], correct: 1, explain: "Las tasas altas castigan las valuaciones de empresas cuyas ganancias fuertes vendrán en muchos años." },
+            { q: "Al analizar el balance de $MELI, ¿por qué es crítico monitorear la penetración de Mercado Pago en la región?", options: ["Porque los servicios fintech suelen aportar márgenes de ganancia muy elevados y recurrencia", "Porque las fintech no requieren regulación alguna"], correct: 0, explain: "El ecosistema financiero potencia y fideliza la pata del e-commerce tradicional." },
+            { q: "Si $VIST aumenta su producción en Vaca Muerta pero el precio internacional del crudo se desploma, el inversor inteligente analiza:", options: ["El costo de extracción (lifting cost) para ver si sigue siendo rentable con márgenes de seguridad", "Vender todo desesperadamente"], correct: 0, explain: "Si el costo es bajo, la empresa sobrevive y gana mercado frente a competidores ineficientes." },
+            { q: "¿Cuál es la trampa de valor (Value Trap) según los modelos predictivos cuantitativos?", options: ["Una acción que parece barata por ratios bajos, pero cuyo negocio está en decadencia estructural", "Una acción que duplica su precio en una semana"], correct: 0, explain: "No todo lo barato es una oportunidad; si el negocio muere, la acción seguirá cayendo." },
+            { q: "El concepto de 'Mister Mercado' (Mr. Market) creado por Graham nos enseña que:", options: ["El mercado es un socio maníaco-depresivo al que debemos comprarle cuando está triste y venderle cuando está eufórico", "Debemos hacer exactamente lo que la mayoría hace"], correct: 0, explain: "El mercado está para servirte con precios absurdos, no para guiarte." },
+            { q: "¿Qué implica un alto apalancamiento financiero (Deuda/Patrimonio Neto) en una época de recesión macroeconómica?", options: ["Una enorme ventaja fiscal sin riesgos", "Un riesgo crítico de quiebra si los ingresos operativos no cubren los intereses fijos"], correct: 1, explain: "La deuda es un amplificador: maximiza ganancias en las buenas, pero acelera la destrucción en las malas." },
+            { q: "Para mitigar el sesgo de reciprocidad y confirmación al analizar $MELI o $MSFT, la IA recomienda:", options: ["Buscar activamente la tesis bajista (Bear Case) y contrastarla con datos duros del balance", "Leer únicamente opiniones optimistas en redes"], correct: 0, explain: "Desafiar tus propias posiciones te protege de la ceguera cognitiva y el exceso de confianza." }
+        ] 
+    };
+
+    let currentQuestions = []; let currentIdx = 0; let selectedOptionIdx = null; let hearts = 3;
+
+    function nav(id) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        const targetView = document.getElementById(id);
+        if(targetView) {
+            targetView.classList.add('active');
+        }
+        if(id === 'quiz-home') renderLeaderboard();
+        if(id === 'sim') renderSimulador();
+        updateDash();
+    }
+
+    function renderSimulador() {
+        const pricesBody = document.getElementById('market-prices-body');
+        if(!pricesBody) return;
+        pricesBody.innerHTML = "";
+        
+        mercadoActivos.forEach(asset => {
+            const tr = document.createElement('tr');
+            let badgeClass = asset.delta >= 0 ? "badge-up" : "badge-down";
+            let sign = asset.delta >= 0 ? "+" : "";
+            tr.innerHTML = `
+                <td><b>${asset.ticker.split(" ")[0]}</b><br><span style="color:#777; font-size:10px;">${asset.tipo}</span></td>
+                <td>$${asset.precio.toLocaleString('es-AR')}</td>
+                <td><span class="badge-delta ${badgeClass}">${sign}${asset.delta}%</span></td>
+                <td style="text-align:right;">
+                    <button class="btn-action-sim" style="background:var(--duo-green); border-color:var(--duo-green-border); margin-right:2px;" onclick="ejecutarAccionSim('${asset.ticker}', 'COMPRA')">B</button>
+                    <button class="btn-action-sim" style="background:var(--duo-red); border-color:#d43f3f;" onclick="ejecutarAccionSim('${asset.ticker}', 'VENTA')">S</button>
+                </td>
+            `;
+            pricesBody.appendChild(tr);
+        });
+
+        const assetsBody = document.getElementById('portfolio-assets-body');
+        if(!assetsBody) return;
+        assetsBody.innerHTML = "";
+        let totalPortfolioVal = 0;
+        let keys = Object.keys(portafolioUsuario);
+
+        if(keys.length === 0) {
+            assetsBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#999; font-weight:500;">No tenés activos comprados todavía.</td></tr>`;
+        } else {
+            keys.forEach(ticker => {
+                let holding = portafolioUsuario[ticker];
+                if(holding.cantidad > 0) {
+                    let currentAsset = mercadoActivos.find(a => a.ticker === ticker);
+                    let currentVal = holding.cantidad * currentAsset.precio;
+                    totalPortfolioVal += currentVal;
+
+                    let rendPct = ((currentAsset.precio - holding.precioCompra) / holding.precioCompra) * 100;
+                    let rendClass = rendPct >= 0 ? "color: #008711;" : "color: #e51a1a;";
+                    let sign = rendPct >= 0 ? "+" : "";
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><b>${ticker.split(" ")[0]}</b></td>
+                        <td>${holding.cantidad} u.</td>
+                        <td>$${Math.round(holding.precioCompra).toLocaleString('es-AR')}</td>
+                        <td style="text-align:right; font-weight:700; ${rendClass}">${sign}${rendPct.toFixed(1)}%</td>
+                    `;
+                    assetsBody.appendChild(tr);
+                }
+            });
+        }
+
+        document.getElementById('portfolio-value').innerText = "$" + totalPortfolioVal.toLocaleString('es-AR');
+        document.getElementById('balance').innerText = "$" + stats.bal.toLocaleString('es-AR');
+        
+        if (turnosJugados >= 3) {
+            document.getElementById('btn-analizar-perfil').style.display = 'block';
+        }
+    }
+
+    function ejecutarAccionSim(ticker, accion) {
+        let asset = mercadoActivos.find(a => a.ticker === ticker);
+        
+        if (accion === 'COMPRA') {
+            if(stats.bal >= asset.precio) {
+                stats.bal -= asset.precio;
+                comprasTotales++;
+                scoreRiesgoAcumulado += asset.pesoRiesgo;
+                if(asset.delta > 10) comprasEnAlza++; 
+
+                if(!portafolioUsuario[ticker]) {
+                    portafolioUsuario[ticker] = { cantidad: 1, precioCompra: asset.precio };
+                } else {
+                    let holding = portafolioUsuario[ticker];
+                    let costoTotalAnterior = holding.cantidad * holding.precioCompra;
+                    holding.cantidad += 1;
+                    holding.precioCompra = (costoTotalAnterior + asset.precio) / holding.cantidad;
+                }
+            } else { alert("Capital insuficiente."); }
+        } else if (accion === 'VENTA') {
+            if(portafolioUsuario[ticker] && portafolioUsuario[ticker].cantidad > 0) {
+                stats.bal += asset.precio;
+                if(asset.delta < -5) ventasEnBaja++; 
+                portafolioUsuario[ticker].cantidad -= 1;
+            } else { alert("No tenés unidades de este activo."); }
+        }
+        renderSimulador();
+        guardarEstado();
+    }
+
+    function avanzarEscenarioMacro() {
+        turnosJugados++;
+        let noticia = poolNoticias[Math.floor(Math.random() * poolNoticias.length)];
+        document.getElementById('news-text').innerText = noticia.text;
+
+        mercadoActivos.forEach(asset => {
+            let impactoBase = noticia.impacto[asset.ticker] !== undefined ? noticia.impacto[asset.ticker] : (Math.floor(Math.random() * 9) - 4);
+            asset.delta = impactoBase;
+            asset.precio = Math.max(1000, Math.round(asset.precio * (1 + impactoBase / 100)));
+        });
+        renderSimulador();
+        guardarEstado();
+    }
+
+    async function calcularYMostrarPerfilNativo() {
+        nav('perfil-ia-view');
+
+        const badge = document.getElementById('risk-badge-element');
+        const dictamen = document.getElementById('perfil-dictamen-texto');
+        const listaCartera = document.getElementById('cartera-sugerida-lista');
+
+        dictamen.innerHTML = 'Analizando patrones de comportamiento y tolerancia al riesgo...';
+        badge.innerText = 'PROCESANDO';
+        badge.className = 'risk-badge';
+        listaCartera.innerHTML = '';
+
+        const API_KEY = 'AQ.Ab8RN6LO3fC0he6A5j7ktrZQgmEvdIOzH2y4oZgBJ-_UkMk7Fg';
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+
+        const prompt = `Actúa como un analista experto en finanzas conductuales y psicosociología del inversor. Tu objetivo es perfilar el riesgo psicológico real de un usuario basándote en sus decisiones en un simulador de mercado bajo escenarios de estrés y volatilidad.
+DATOS DE COMPORTAMIENTO EXTRAÍDOS:
+
+Compras en escenarios de alza (Síntoma de FOMO): ${comprasEnAlza}
+
+Ventas en escenarios de baja (Pánico / Aversión a la pérdida): ${ventasEnBaja}
+
+Turnos de permanencia operando: ${turnosJugados}
+
+Composición actual del portafolio: ${JSON.stringify(portafolioUsuario)}
+
+TAREA:
+Analiza la conducta del usuario y devuelve tu dictamen con la siguiente estructura estricta:
+Primero, la palabra CONSERVADOR, MODERADO o AGRESIVO.
+Segundo, un caracter delimitador pipe (|).
+Tercero, un párrafo conciso de máximo 4 líneas justificando la clasificación. Utiliza terminología de finanzas de empresas y sesgos cognitivos (ej. aversión a la pérdida, exceso de confianza, diversificación). Evalúa si su tolerancia al riesgo real coincide con las decisiones tomadas frente a la volatilidad.`;
+
+        const payload = {
+            contents: [{
+                parts: [{ text: prompt }]
+            }]
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Gemini respondió con HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            const textoCrudo = data.candidates[0].content.parts[0].text;
+
+            const partes = textoCrudo.split('|');
+            const perfilCrudo = (partes[0] || '').trim().toUpperCase();
+            const justificacion = (partes[1] || '').trim();
+
+            let perfil = 'Moderado';
+            if (perfilCrudo.includes('CONSERVADOR')) perfil = 'Conservador';
+            else if (perfilCrudo.includes('AGRESIVO')) perfil = 'Agresivo';
+            else if (perfilCrudo.includes('MODERADO')) perfil = 'Moderado';
+
+            badge.innerText = perfil;
+            badge.className = `risk-badge badge-${perfil.toLowerCase()}`;
+            dictamen.innerHTML = justificacion || textoCrudo;
+
+            if (perfil === 'Conservador') {
+                listaCartera.innerHTML = `
+                    <div class="pie-row"><span style="display:flex; align-items:center;"><span class="pie-color" style="background:var(--duo-green);"></span> <b>YMCXO (Obligaciones Negociables)</b></span> <span>55%</span></div>
+                    <div class="pie-row"><span style="display:flex; align-items:center;"><span class="pie-color" style="background:var(--primary);"></span> <b>SPY (S&P 500 ETF)</b></span> <span>30%</span></div>
+                    <div class="pie-row"><span style="display:flex; align-items:center;"><span class="pie-color" style="background:#ccc;"></span> <b>Efectivo Líquido</b></span> <span>15%</span></div>
+                `;
+            } else if (perfil === 'Moderado') {
+                listaCartera.innerHTML = `
+                    <div class="pie-row"><span style="display:flex; align-items:center;"><span class="pie-color" style="background:var(--primary);"></span> <b>SPY / QQQ (Índices CEDEAR)</b></span> <span>40%</span></div>
+                    <div class="pie-row"><span style="display:flex; align-items:center;"><span class="pie-color" style="background:var(--duo-green);"></span> <b>YMCXO (Renta Fija ON)</b></span> <span>35%</span></div>
+                    <div class="pie-row"><span style="display:flex; align-items:center;"><span class="pie-color" style="background:var(--duo-orange);"></span> <b>VIST / MELI (Crecimiento)</b></span> <span>25%</span></div>
+                `;
+            } else {
+                listaCartera.innerHTML = `
+                    <div class="pie-row"><span style="display:flex; align-items:center;"><span class="pie-color" style="background:var(--duo-red);"></span> <b>MELI / VIST (Acciones Valor)</b></span> <span>50%</span></div>
+                    <div class="pie-row"><span style="display:flex; align-items:center;"><span class="pie-color" style="background:var(--primary);"></span> <b>QQQ (Nasdaq Tech ETF)</b></span> <span>35%</span></div>
+                    <div class="pie-row"><span style="display:flex; align-items:center;"><span class="pie-color" style="background:var(--duo-green);"></span> <b>YMCXO (ONs de Resguardo)</b></span> <span>15%</span></div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error al consultar Gemini:', error);
+            badge.innerText = 'ERROR';
+            badge.className = 'risk-badge badge-moderado';
+            dictamen.innerHTML = `<b>Motor offline.</b> Detalle técnico:<br><code style="font-size:11px; color:#c00;">${error.message}</code><br><br>Revisá: (1) la API key, (2) que la API Generative Language esté habilitada en Google Cloud, (3) que el modelo del endpoint exista.`;
+            listaCartera.innerHTML = '';
+        }
+    }
+
+    function startQuiz(level) { 
+        currentQuestions = quizData[level]; 
+        currentIdx = 0; 
+        hearts = 3; 
+        selectedOptionIdx = null;
+        document.getElementById('heart-count').innerText = hearts; 
+        
+        document.getElementById('quiz-feedback').style.display = 'none';
+        document.getElementById('btn-check').style.display = 'block';
+        document.getElementById('btn-next').style.display = 'none';
+        
+        nav('quiz'); 
+        showQuestion(); 
+    }
+    
+    function showQuestion() { 
+        const qData = currentQuestions[currentIdx]; 
+        document.getElementById('q-text').innerText = qData.q; 
+        const optionsDiv = document.getElementById('quiz-options'); 
+        optionsDiv.innerHTML = ""; 
+        
+        let progressPct = ((currentIdx) / currentQuestions.length) * 100;
+        document.getElementById('quiz-progress').style.width = `${progressPct}%`;
+
+        qData.options.forEach((opt, idx) => { 
+            const btn = document.createElement('button'); 
+            btn.className = "option-btn"; 
+            btn.innerText = opt; 
+            btn.onclick = () => { 
+                selectedOptionIdx = idx; 
+                document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+            }; 
+            optionsDiv.appendChild(btn); 
+        }); 
+    }
+    
+    function checkSelectedAnswer() { 
+        if(selectedOptionIdx === null) {
+            alert("Por favor elegí una opción.");
+            return;
+        }
+        
+        const qData = currentQuestions[currentIdx];
+        const feedback = document.getElementById('quiz-feedback');
+        feedback.style.display = "block";
+        
+        if(selectedOptionIdx === qData.correct) {
+            feedback.className = "feedback-box correct";
+            feedback.innerText = "¡Correcto! " + qData.explain;
+            let userObj = amigosCompetencia.find(a => a.isUser);
+            if(userObj) userObj.xp += 50;
+        } else {
+            feedback.className = "feedback-box incorrect";
+            feedback.innerText = "Incorrecto. " + qData.explain;
+            hearts--;
+            document.getElementById('heart-count').innerText = hearts;
+        }
+
+        document.getElementById('btn-check').style.display = 'none';
+        document.getElementById('btn-next').style.display = 'block';
+
+        if(hearts <= 0) {
+            alert("Te quedaste sin vidas. ¡A seguir practicando!");
+            nav('quiz-home');
+        }
+    }
+
+    function nextQuestion() {
+        currentIdx++;
+        selectedOptionIdx = null;
+        document.getElementById('quiz-feedback').style.display = 'none';
+        document.getElementById('btn-check').style.display = 'block';
+        document.getElementById('btn-next').style.display = 'none';
+
+        if(currentIdx < currentQuestions.length) {
+            showQuestion();
+        } else {
+            document.getElementById('quiz-progress').style.width = `100%`;
+            alert("🎉 ¡Completaste este nivel con éxito!");
+            nav('quiz-home');
+        }
+    }
+    
+    function renderLeaderboard() { 
+        const tbody = document.getElementById('leaderboard-body'); 
+        if(!tbody) return;
+        tbody.innerHTML = ""; 
+        
+        let listaOrdenada = [...amigosCompetencia].sort((a, b) => b.xp - a.xp);
+        
+        listaOrdenada.forEach((amigo, index) => {
+            const tr = document.createElement('tr');
+            if(amigo.isUser) tr.className = "user-row";
+            
+            tr.innerHTML = `
+                <td class="rank">${index + 1}</td>
+                <td>${amigo.nombre}</td>
+                <td style="text-align: right;">${amigo.xp} XP</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+    
+    function registrarMail() { stats.mails++; updateDash(); alert("Registrado"); }
+    function trackAsesor(t) { if(t=='IA') stats.ia++; else stats.hum++; updateDash(); }
+    
+    function updateDash() { 
+        if(!document.getElementById('d-sim')) return;
+        document.getElementById('d-sim').innerText = stats.brokerSim; 
+        document.getElementById('d-quiz').innerText = stats.brokerQuiz; 
+        document.getElementById('d-mails').innerText = stats.mails; 
+        document.getElementById('d-share').innerText = stats.shared; 
+        document.getElementById('n-ia').innerText = stats.ia; 
+        document.getElementById('n-hum').innerText = stats.hum; 
+
+        // Lógica visual dinámica para la barra de preferencia IA vs Humano
+        let totalAsesor = stats.ia + stats.hum;
+        let pctIa = totalAsesor > 0 ? (stats.ia / totalAsesor) * 100 : 50;
+        document.getElementById('dash-ia-bar').style.width = pctIa + "%";
+    }
+    
+    function toggleChat() { const c = document.getElementById('ai-chatbot'); c.style.display = (c.style.display === 'flex') ? 'none' : 'flex'; }
+
+    function enviarConsultaAI() {
+        const input = document.getElementById('chat-input');
+        const texto = input.value.trim();
+        if (!texto) return;
+
+        const chatBox = document.getElementById('chat-box');
+
+        const userMsg = document.createElement('div');
+        userMsg.className = 'msg user';
+        userMsg.innerText = texto;
+        chatBox.appendChild(userMsg);
+
+        input.value = '';
+
+        const loadingMsg = document.createElement('div');
+        loadingMsg.className = 'msg loading';
+        loadingMsg.id = 'loading-msg-temp';
+        loadingMsg.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+        chatBox.appendChild(loadingMsg);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        setTimeout(() => {
+            const loading = document.getElementById('loading-msg-temp');
+            if (loading) loading.remove();
+
+            const botMsg = document.createElement('div');
+            botMsg.className = 'msg bot';
+            botMsg.innerText = 'En esta versión, el asistente sólo evalúa tu perfil a través de las operaciones que realices en la pizarra del simulador. Operá unos turnos y tocá "Analizar mi Perfil con IA" para ver el diagnóstico.';
+            chatBox.appendChild(botMsg);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }, 1500);
+    }
+
+    function guardarEstado() {
+        try {
+            const estado = {
+                bal: stats.bal,
+                portafolioUsuario: portafolioUsuario,
+                turnosJugados: turnosJugados
+            };
+            localStorage.setItem('finedu-estado', JSON.stringify(estado));
+        } catch (e) {
+            console.warn('No se pudo guardar el estado en localStorage:', e);
+        }
+    }
+
+    window.onload = function() {
+        try {
+            const raw = localStorage.getItem('finedu-estado');
+            if (!raw) return;
+            const estado = JSON.parse(raw);
+            if (typeof estado.bal === 'number') stats.bal = estado.bal;
+            if (estado.portafolioUsuario && typeof estado.portafolioUsuario === 'object') {
+                portafolioUsuario = estado.portafolioUsuario;
+            }
+            if (typeof estado.turnosJugados === 'number') turnosJugados = estado.turnosJugados;
+        } catch (e) {
+            console.warn('No se pudo recuperar el estado de localStorage:', e);
+        }
+    };
+
+    function compartirWhatsApp(texto) {
+        stats.shared++;
+        updateDash();
+        const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+        window.open(url, '_blank');
+    }
+
+    function invitarAmigoInstagram() {
+        stats.shared++;
+        updateDash();
+        const url = `https://www.instagram.com/direct/inbox/`;
+        window.open(url, '_blank');
+    }
+
+    function compartirInstagramLogro(textoLogro) {
+        stats.shared++;
+        updateDash();
+        alert(`Copiado al portapapeles: "${textoLogro}". Redirigiendo a Instagram...`);
+        navigator.clipboard.writeText(textoLogro);
+        const url = `https://www.instagram.com/${TU_USUARIO_INSTAGRAM}/`;
+        window.open(url, '_blank');
+    }
+</script>
+</body>
+</html>
