@@ -43,7 +43,8 @@ export async function handleAi({ body = {}, apiKey, fetchFn = fetch }) {
     // fraud
     const [veredicto, motivo] = parsePipe(text);
     return { veredicto: veredicto || 'PRECAUCIÓN', motivo: motivo || text.trim(), source: 'ai' };
-  } catch {
+  } catch (e) {
+    console.error('[ai-core] fallback por error:', e?.message);
     return fallbackFor(intent, body);
   }
 }
