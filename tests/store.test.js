@@ -54,3 +54,10 @@ test('reset vuelve al default', () => {
   s.reset();
   assert.equal(s.get('wallet.cash'), DEFAULT_STATE.wallet.cash);
 });
+
+test('DEFAULT_STATE incluye market.prices, market.priceHistory y wallet.valueHistory', () => {
+  const s = createStore(mockStorage());
+  assert.deepEqual(s.get('market.prices'), []);
+  assert.deepEqual(s.get('market.priceHistory'), {});
+  assert.deepEqual(s.get('wallet.valueHistory'), []);
+});
