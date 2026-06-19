@@ -23,9 +23,12 @@ test('set persiste el valor en storage', () => {
 });
 
 test('update muta y persiste', () => {
-  const s = createStore(mockStorage());
+  const storage = mockStorage();
+  const s = createStore(storage);
   s.update((st) => { st.progress.xp += 50; });
   assert.equal(s.get('progress.xp'), 50);
+  const saved = JSON.parse(storage._dump()['finedu-state']);
+  assert.equal(saved.progress.xp, 50);
 });
 
 test('carga estado existente desde storage', () => {
