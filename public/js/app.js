@@ -4,6 +4,7 @@ import { renderHome } from './views/home.js';
 import { renderSim } from './views/sim.js';
 import { renderQuiz } from './views/quiz.js';
 import { renderLeague } from './views/league.js';
+import { renderDashboard } from './views/dashboard.js';
 
 const store = createStore();
 const container = document.getElementById('app-view');
@@ -16,7 +17,7 @@ const routes = {
   sim: (c) => renderSim(c, { store }),
   quiz: (c) => renderQuiz(c, { store }),
   league: (c) => renderLeague(c, { store }),
-  dashboard: placeholder('Dashboard del broker'),
+  dashboard: (c) => renderDashboard(c, { store }),
   profile: placeholder('Perfil de riesgo IA'),
 };
 
