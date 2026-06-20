@@ -10,6 +10,8 @@ import { renderFraud } from './views/fraud.js';
 import { mountChat } from './views/chat.js';
 import { applySkin } from './theme.js';
 import { computeStreak, todayStr } from './streak.js';
+import { ACHIEVEMENTS, evaluateAchievements } from './achievements.js';
+import { toast } from './ui.js';
 
 const store = createStore();
 applySkin(store.get('settings.brokerSkin'));
@@ -18,6 +20,18 @@ store.update((s) => {
   s.progress.streak = r.streak;
   s.progress.lastActiveDate = r.lastActiveDate;
 });
+{
+  const st = store.getState();
+  const ganados = new Set(st.progress.achievements || []);
+  const nuevos = evaluateAchievements(st).filter((id) => !ganados.has(id));
+  if (nuevos.length) {
+    store.update((s) => { s.progress.achievements = [...(s.progress.achievements || []), ...nuevos]; });
+    nuevos.forEach((id) => {
+      const a = ACHIEVEMENTS.find((x) => x.id === id);
+      if (a) toast(`${a.icon} ¡Logro: ${a.label}!`);
+    });
+  }
+}
 const container = document.getElementById('app-view');
 
 const routes = {
