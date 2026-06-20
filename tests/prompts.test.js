@@ -22,14 +22,19 @@ test('buildRequestBody(chat) mapea messages a roles de Gemini e incluye contexto
     messages: [{ role: 'user', text: 'hola' }, { role: 'bot', text: 'qué tal' }, { role: 'user', text: '¿qué es un CEDEAR?' }],
     context: { cartera: { 'MELI': 2 }, ultimasOps: ['compra MELI'], pantalla: 'sim' },
   });
-  assert.equal(body.systemInstruction.parts[0].text, SYSTEM_PROMPTS.chat);
-  // el primer turno es el contexto (role user), luego la conversación
-  assert.equal(body.contents[0].role, 'user');
-  assert.match(body.contents[0].parts[0].text, /MELI/);
-  // 'bot' se mapea a 'model'
-  const roles = body.contents.map((c) => c.role);
-  assert.ok(roles.includes('model'));
+  // el contexto va en systemInstruction (no como turno suelto), para no romper la alternancia user/model
+  assert.match(body.systemInstruction.parts[0].text, /MELI/);
+  assert.ok(body.systemInstruction.parts[0].text.startsWith(SYSTEM_PROMPTS.chat));
+  // los contents son solo la conversación, alternando user/model/user
+  assert.deepEqual(body.contents.map((c) => c.role), ['user', 'model', 'user']);
+  assert.equal(body.contents[0].parts[0].text, 'hola');
   assert.equal(body.contents[body.contents.length - 1].parts[0].text, '¿qué es un CEDEAR?');
+});
+
+test('buildRequestBody(chat) nunca deja contents vacío (mete un turno por defecto)', () => {
+  const body = buildRequestBody('chat', { messages: [], context: {} });
+  assert.equal(body.contents.length, 1);
+  assert.equal(body.contents[0].role, 'user');
 });
 
 test('buildRequestBody(profile) incluye los datos de conducta', () => {

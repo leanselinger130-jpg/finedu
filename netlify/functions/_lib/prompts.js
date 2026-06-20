@@ -26,18 +26,20 @@ export const SYSTEM_PROMPTS = {
 function userTurn(text) { return { role: 'user', parts: [{ text }] }; }
 
 export function buildRequestBody(intent, payload = {}) {
-  const system = SYSTEM_PROMPTS[intent] || SYSTEM_PROMPTS.chat;
+  let system = SYSTEM_PROMPTS[intent] || SYSTEM_PROMPTS.chat;
   let contents;
   if (intent === 'chat') {
     const ctx = payload.context || {};
-    const ctxText =
-      'Contexto del usuario (no lo repitas literal): ' +
+    // El contexto va en el systemInstruction (NO como turno suelto): si lo metiéramos
+    // como turno de usuario quedarían dos 'user' seguidos y Gemini exige alternar user/model.
+    system = system +
+      '\n\nContexto del usuario (no lo repitas literal): ' +
       `pantalla=${ctx.pantalla || 'desconocida'}; ` +
       `cartera=${JSON.stringify(ctx.cartera || {})}; ` +
       `últimas operaciones=${JSON.stringify(ctx.ultimasOps || [])}.`;
     const convo = (payload.messages || []).map((m) =>
       ({ role: m.role === 'bot' ? 'model' : 'user', parts: [{ text: m.text }] }));
-    contents = [userTurn(ctxText), ...convo];
+    contents = convo.length ? convo : [userTurn('Hola')];
   } else if (intent === 'profile') {
     const b = payload.behavior || {};
     const text =
