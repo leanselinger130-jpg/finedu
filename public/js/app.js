@@ -9,9 +9,15 @@ import { renderProfile } from './views/profile.js';
 import { renderFraud } from './views/fraud.js';
 import { mountChat } from './views/chat.js';
 import { applySkin } from './theme.js';
+import { computeStreak, todayStr } from './streak.js';
 
 const store = createStore();
 applySkin(store.get('settings.brokerSkin'));
+store.update((s) => {
+  const r = computeStreak(s.progress, todayStr());
+  s.progress.streak = r.streak;
+  s.progress.lastActiveDate = r.lastActiveDate;
+});
 const container = document.getElementById('app-view');
 
 const routes = {
