@@ -9,6 +9,7 @@ import { renderProfile } from './views/profile.js';
 import { renderFraud } from './views/fraud.js';
 import { renderChallenge } from './views/challenge.js';
 import { mountChat } from './views/chat.js';
+import { mountOnboarding } from './views/onboarding.js';
 import { applySkin } from './theme.js';
 import { computeStreak, todayStr } from './streak.js';
 import { ACHIEVEMENTS, evaluateAchievements } from './achievements.js';
@@ -53,7 +54,7 @@ function setActiveNav(name) {
 }
 
 const router = createRouter({ container, routes, onChange: setActiveNav });
-router.start();
+mountOnboarding({ store, onDone: () => router.start() });
 
 const chat = mountChat({ store });
 document.getElementById('ai-fab').addEventListener('click', () => chat.toggle());
