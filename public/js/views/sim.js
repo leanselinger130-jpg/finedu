@@ -148,7 +148,7 @@ function renderList(container, store) {
     });
   }
 
-  container.append(
+  container.append(...[
     el('h2', { text: 'Simulador', style: 'margin-bottom:14px;' }),
     header, perfCard, newsBox, btnAvanzar, turnoBadge, perfilBtn,
     el('h3', { text: 'Pizarra de activos', style: 'font-size:14px;margin:4px 0 8px;color:var(--sub);' }),
@@ -156,7 +156,7 @@ function renderList(container, store) {
     list,
     el('h3', { text: 'Tus tenencias', style: 'font-size:14px;margin:14px 0 4px;color:var(--sub);' }),
     holdings,
-  );
+  ].filter(Boolean));
 }
 
 // --- Avanzar tiempo: evoluciona precios, persiste historial y valor del portafolio ---
@@ -270,9 +270,9 @@ function renderDetail(container, store, ticker) {
       ])
     : null;
 
-  container.append(back, head, priceRow, chartCard, descCard, posCard, nudgeCard,
+  container.append(...[back, head, priceRow, chartCard, descCard, posCard, nudgeCard,
     el('div', { class: 'sub', text: 'Cantidad a operar', style: 'font-size:11px;font-weight:600;margin-bottom:6px;' }),
-    qtyInput, quick, actions);
+    qtyInput, quick, actions].filter(Boolean));
 }
 
 // --- Operar por cantidad (preserva cálculos del MVP) ---
