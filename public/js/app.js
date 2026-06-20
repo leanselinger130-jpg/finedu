@@ -8,8 +8,10 @@ import { renderDashboard } from './views/dashboard.js';
 import { renderProfile } from './views/profile.js';
 import { renderFraud } from './views/fraud.js';
 import { mountChat } from './views/chat.js';
+import { applySkin } from './theme.js';
 
 const store = createStore();
+applySkin(store.get('settings.brokerSkin'));
 const container = document.getElementById('app-view');
 
 const routes = {
