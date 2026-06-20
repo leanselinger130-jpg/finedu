@@ -5,13 +5,12 @@ import { renderSim } from './views/sim.js';
 import { renderQuiz } from './views/quiz.js';
 import { renderLeague } from './views/league.js';
 import { renderDashboard } from './views/dashboard.js';
+import { renderProfile } from './views/profile.js';
+import { renderFraud } from './views/fraud.js';
 import { mountChat } from './views/chat.js';
 
 const store = createStore();
 const container = document.getElementById('app-view');
-
-// Placeholders temporales para las rutas que se completan en tasks siguientes.
-const placeholder = (name) => (c) => { c.innerHTML = `<h2>${name}</h2><p class="sub">En construcción</p>`; };
 
 const routes = {
   home: (c) => renderHome(c, { store }),
@@ -19,7 +18,8 @@ const routes = {
   quiz: (c) => renderQuiz(c, { store }),
   league: (c) => renderLeague(c, { store }),
   dashboard: (c) => renderDashboard(c, { store }),
-  profile: placeholder('Perfil de riesgo IA'),
+  profile: (c) => renderProfile(c, { store }),
+  fraud: (c) => renderFraud(c),
 };
 
 function setActiveNav(name) {

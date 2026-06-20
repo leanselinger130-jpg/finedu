@@ -90,6 +90,11 @@ function renderList(container, store) {
   });
   const turnoBadge = el('div', { class: 'sub', text: `Turno ${turn}`, style: 'font-size:11px;text-align:right;margin-bottom:10px;' });
 
+  // Acceso al perfil de riesgo IA tras 3 turnos
+  const perfilBtn = (turn >= 3)
+    ? el('button', { class: 'btn btn-ai', style: 'margin-bottom:10px;', text: '🤖 Analizar mi perfil con IA', onclick: () => { location.hash = '#/profile'; } })
+    : null;
+
   // Pizarra de activos con sparkline
   const list = el('div', {});
   prices.forEach((asset) => {
@@ -144,7 +149,7 @@ function renderList(container, store) {
 
   container.append(
     el('h2', { text: 'Simulador', style: 'margin-bottom:14px;' }),
-    header, perfCard, newsBox, btnAvanzar, turnoBadge,
+    header, perfCard, newsBox, btnAvanzar, turnoBadge, perfilBtn,
     el('h3', { text: 'Pizarra de activos', style: 'font-size:14px;margin:4px 0 8px;color:var(--sub);' }),
     el('p', { class: 'sub', text: 'Tocá un activo para ver su detalle y operar.', style: 'font-size:11px;margin:0 0 10px;' }),
     list,
