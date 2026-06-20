@@ -7,6 +7,7 @@ import { renderLeague } from './views/league.js';
 import { renderDashboard } from './views/dashboard.js';
 import { renderProfile } from './views/profile.js';
 import { renderFraud } from './views/fraud.js';
+import { renderChallenge } from './views/challenge.js';
 import { mountChat } from './views/chat.js';
 import { applySkin } from './theme.js';
 import { computeStreak, todayStr } from './streak.js';
@@ -42,6 +43,7 @@ const routes = {
   dashboard: (c) => renderDashboard(c, { store }),
   profile: (c) => renderProfile(c, { store }),
   fraud: (c) => renderFraud(c),
+  challenge: (c) => renderChallenge(c, { store }),
 };
 
 function setActiveNav(name) {
