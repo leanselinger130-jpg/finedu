@@ -29,10 +29,18 @@ export async function handleAi({ body = {}, apiKey, fetchFn = fetch }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(reqBody),
     });
-    if (!res.ok) return fallbackFor(intent, body);
+    if (!res.ok) {
+      let errBody = '';
+      try { errBody = await res.text(); } catch {}
+      console.error(`[ai-core] Gemini HTTP ${res.status} (intent=${intent}):`, errBody.slice(0, 400));
+      return fallbackFor(intent, body);
+    }
     const data = await res.json();
     const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) return fallbackFor(intent, body);
+    if (!text) {
+      console.error(`[ai-core] Gemini respondió sin texto (intent=${intent}).`);
+      return fallbackFor(intent, body);
+    }
 
     if (intent === 'chat') return { reply: text.trim(), source: 'ai' };
     if (intent === 'profile') {
