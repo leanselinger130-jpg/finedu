@@ -8,6 +8,7 @@
   --sub: #94A3B8;
   --gold: #F59E0B;
   --gold-2: #FBBF24;
+  --brand: var(--gold);
   --violet: #8B5CF6;
   --violet-soft: rgba(139,92,246,.18);
   --violet-border: rgba(139,92,246,.45);
