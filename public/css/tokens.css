@@ -8,11 +8,13 @@
   --sub: #94A3B8;
   --gold: #F59E0B;
   --gold-2: #FBBF24;
+  --brand: var(--gold);
   --violet: #8B5CF6;
   --violet-soft: rgba(139,92,246,.18);
   --violet-border: rgba(139,92,246,.45);
   --green: #34D399;
   --red: #F87171;
+  --chat-bot: #1a2140;
 
   --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px;
   --radius-sm: 9px; --radius-md: 14px; --radius-lg: 18px; --radius-xl: 24px;

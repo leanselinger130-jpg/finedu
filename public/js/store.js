@@ -10,7 +10,7 @@ export const DEFAULT_STATE = {
   progress: { xp: 0, streak: 0, lastActiveDate: null, quizLevelsDone: [], achievements: [] },
   behavior: { comprasEnAlza: 0, ventasEnBaja: 0, turnos: 0, comprasTotales: 0, scoreRiesgo: 0 },
   metrics: { brokerSim: 0, brokerQuiz: 0, mails: 0, shared: 0, ia: 0, hum: 0 },
-  settings: { theme: 'dark', brokerSkin: null },
+  settings: { theme: 'dark', brokerSkin: null, onboardingDone: false },
 };
 
 function deepMerge(base, override) {

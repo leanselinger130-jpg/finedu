@@ -8,6 +8,8 @@
 // Verificación en browser diferida.
 
 import { el, clear } from '../ui.js';
+import { BROKERS } from '../data/brokers.js';
+import { applySkin } from '../theme.js';
 
 // ─── Punto de entrada ────────────────────────────────────────────────────────
 export function renderDashboard(container, { store }) {
@@ -27,6 +29,17 @@ export function renderDashboard(container, { store }) {
       el('h2', { text: 'Panel de aliado', style: 'margin:0;font-size:18px;' }),
     ]),
     el('p', { class: 'sub', style: 'font-size:12px;margin:0;', text: 'Vista de demostración para el broker · FINEDU v2' }),
+  ]);
+
+  // ── Tasa de conversión interés → acción ───────────────────────────────────
+  const turnos = store.get('behavior.turnos') || 0;
+  const niveles = (store.get('progress.quizLevelsDone') || []).length;
+  const actividad = Math.max(1, turnos + niveles);
+  const convPct = Math.min(100, Math.round(((brokerSim + brokerQuiz) / actividad) * 100));
+  const convCard = el('div', { class: 'card', style: 'margin-bottom:12px;text-align:center;' }, [
+    el('div', { class: 'sub', style: 'font-size:11px;font-weight:600;', text: 'Conversión interés → acción (broker)' }),
+    el('div', { class: 'tnum', style: 'font-size:30px;font-weight:700;color:var(--brand);', text: convPct + '%' }),
+    el('div', { class: 'sub', style: 'font-size:11px;', text: `${brokerSim + brokerQuiz} clicks al broker sobre ${actividad} acciones educativas` }),
   ]);
 
   // ── Grilla de métricas (2 columnas) ──────────────────────────────────────
@@ -53,6 +66,25 @@ export function renderDashboard(container, { store }) {
     ]),
   ]);
 
+  // ── Selector de marca blanca ─────────────────────────────────────────────
+  const current = store.get('settings.brokerSkin') || 'default';
+  const skinCard = el('div', { class: 'card', style: 'margin-bottom:12px;' }, [
+    el('div', { class: 'sub', style: 'font-size:11px;font-weight:600;margin-bottom:8px;letter-spacing:.05em;', text: 'Vista previa marca blanca' }),
+    el('p', { class: 'sub', style: 'font-size:12px;margin:0 0 10px;', text: 'Así se vería FINEDU integrado en la app del broker.' }),
+    el('div', { style: 'display:flex;gap:8px;' },
+      Object.values(BROKERS).map((b) => el('button', {
+        class: current === b.id ? 'btn btn-primary' : 'btn btn-secondary',
+        style: 'flex:1;justify-content:center;margin:0;padding:9px;font-size:12px;',
+        text: b.name.split(' ')[0],
+        onclick: () => {
+          applySkin(b.id);
+          store.set('settings.brokerSkin', b.id);
+          renderDashboard(container, { store });
+        },
+      })),
+    ),
+  ]);
+
   // ── Botón de regreso ──────────────────────────────────────────────────────
   const backBtn = el('button', {
     class: 'btn btn-ghost',
@@ -60,7 +92,7 @@ export function renderDashboard(container, { store }) {
     onclick: () => { location.hash = '#/home'; },
   });
 
-  container.append(headerCard, metricsGrid, iaBar, backBtn);
+  container.append(headerCard, convCard, metricsGrid, iaBar, skinCard, backBtn);
 }
 
 // ─── Helper: tile de métrica individual ──────────────────────────────────────

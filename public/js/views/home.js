@@ -1,13 +1,17 @@
 import { el, toast } from '../ui.js';
+import { brokerPreset } from '../theme.js';
 
 export function renderHome(container, { store }) {
   const cash = store.get('wallet.cash');
   const go = (r) => () => { location.hash = `#/${r}`; };
 
+  const preset = brokerPreset(store.get('settings.brokerSkin'));
+  const streak = store.get('progress.streak') || 0;
   const head = el('div', {}, [
-    el('h1', { html: 'FINEDU<span style="color:var(--gold)">.</span>', style: 'font-size:26px;' }),
+    el('h1', { html: `${preset.logo}<span style="color:var(--brand)">.</span>`, style: 'font-size:26px;' }),
     el('p', { class: 'sub', text: 'Practicá, aprendé y operá con confianza.', style: 'font-size:13px;margin-top:4px;' }),
-  ]);
+    streak > 0 ? el('span', { class: 'pill pill-gold', text: `🔥 Racha ${streak}` }) : null,
+  ].filter(Boolean));
 
   const balance = el('div', { class: 'card' }, [
     el('div', { class: 'sub', text: 'Capital virtual', style: 'font-size:11px;font-weight:500;' }),

@@ -7,9 +7,33 @@ import { renderLeague } from './views/league.js';
 import { renderDashboard } from './views/dashboard.js';
 import { renderProfile } from './views/profile.js';
 import { renderFraud } from './views/fraud.js';
+import { renderChallenge } from './views/challenge.js';
 import { mountChat } from './views/chat.js';
+import { mountOnboarding } from './views/onboarding.js';
+import { applySkin } from './theme.js';
+import { computeStreak, todayStr } from './streak.js';
+import { ACHIEVEMENTS, evaluateAchievements } from './achievements.js';
+import { toast } from './ui.js';
 
 const store = createStore();
+applySkin(store.get('settings.brokerSkin'));
+store.update((s) => {
+  const r = computeStreak(s.progress, todayStr());
+  s.progress.streak = r.streak;
+  s.progress.lastActiveDate = r.lastActiveDate;
+});
+{
+  const st = store.getState();
+  const ganados = new Set(st.progress.achievements || []);
+  const nuevos = evaluateAchievements(st).filter((id) => !ganados.has(id));
+  if (nuevos.length) {
+    store.update((s) => { s.progress.achievements = [...(s.progress.achievements || []), ...nuevos]; });
+    nuevos.forEach((id) => {
+      const a = ACHIEVEMENTS.find((x) => x.id === id);
+      if (a) toast(`${a.icon} ¡Logro: ${a.label}!`);
+    });
+  }
+}
 const container = document.getElementById('app-view');
 
 const routes = {
@@ -20,6 +44,7 @@ const routes = {
   dashboard: (c) => renderDashboard(c, { store }),
   profile: (c) => renderProfile(c, { store }),
   fraud: (c) => renderFraud(c),
+  challenge: (c) => renderChallenge(c, { store }),
 };
 
 function setActiveNav(name) {
@@ -29,7 +54,7 @@ function setActiveNav(name) {
 }
 
 const router = createRouter({ container, routes, onChange: setActiveNav });
-router.start();
+mountOnboarding({ store, onDone: () => router.start() });
 
 const chat = mountChat({ store });
 document.getElementById('ai-fab').addEventListener('click', () => chat.toggle());
