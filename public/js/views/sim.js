@@ -11,6 +11,7 @@ const BENCHMARK = 'SPY (S&P 500)';
 
 // Estado de navegación interno de la vista (lista vs detalle). No es una ruta.
 let selectedTicker = null;
+let nudge = null;
 
 // --- Helpers de estado de mercado en el store ---
 function getPrices(store) {
@@ -90,6 +91,11 @@ function renderList(container, store) {
   });
   const turnoBadge = el('div', { class: 'sub', text: `Turno ${turn}`, style: 'font-size:11px;text-align:right;margin-bottom:10px;' });
 
+  // Acceso al perfil de riesgo IA tras 3 turnos
+  const perfilBtn = (turn >= 3)
+    ? el('button', { class: 'btn btn-ai', style: 'margin-bottom:10px;', text: '🤖 Analizar mi perfil con IA', onclick: () => { location.hash = '#/profile'; } })
+    : null;
+
   // Pizarra de activos con sparkline
   const list = el('div', {});
   prices.forEach((asset) => {
@@ -142,15 +148,15 @@ function renderList(container, store) {
     });
   }
 
-  container.append(
+  container.append(...[
     el('h2', { text: 'Simulador', style: 'margin-bottom:14px;' }),
-    header, perfCard, newsBox, btnAvanzar, turnoBadge,
+    header, perfCard, newsBox, btnAvanzar, turnoBadge, perfilBtn,
     el('h3', { text: 'Pizarra de activos', style: 'font-size:14px;margin:4px 0 8px;color:var(--sub);' }),
     el('p', { class: 'sub', text: 'Tocá un activo para ver su detalle y operar.', style: 'font-size:11px;margin:0 0 10px;' }),
     list,
     el('h3', { text: 'Tus tenencias', style: 'font-size:14px;margin:14px 0 4px;color:var(--sub);' }),
     holdings,
-  );
+  ].filter(Boolean));
 }
 
 // --- Avanzar tiempo: evoluciona precios, persiste historial y valor del portafolio ---
@@ -253,9 +259,20 @@ function renderDetail(container, store, ticker) {
   });
   const actions = el('div', { style: 'display:flex;gap:10px;' }, [buyBtn, sellBtn]);
 
-  container.append(back, head, priceRow, chartCard, descCard, posCard,
+  // Tarjeta-nudge de conducta (pánico/FOMO): invita a hablar con el Asesor IA
+  const nudgeCard = nudge
+    ? el('div', {
+        class: 'card', style: 'background:var(--violet-soft);border-color:var(--violet-border);cursor:pointer;',
+        onclick: () => { nudge = null; window.dispatchEvent(new CustomEvent('finedu:toggle-chat')); },
+      }, [
+        el('span', { text: '✦ ', style: 'color:var(--violet);font-weight:700;' }),
+        el('span', { text: nudge.texto, style: 'font-size:12.5px;line-height:1.45;' }),
+      ])
+    : null;
+
+  container.append(...[back, head, priceRow, chartCard, descCard, posCard, nudgeCard,
     el('div', { class: 'sub', text: 'Cantidad a operar', style: 'font-size:11px;font-weight:600;margin-bottom:6px;' }),
-    qtyInput, quick, actions);
+    qtyInput, quick, actions].filter(Boolean));
 }
 
 // --- Operar por cantidad (preserva cálculos del MVP) ---
@@ -291,5 +308,9 @@ function operar(container, store, ticker, accion, qty) {
     });
     toast(`Vendiste ${qty} u. de ${ticker.split(' ')[0]}.`);
   }
+  // Nudge local de conducta (no llama a la IA; solo invita a conversar)
+  if (accion === 'VENTA' && asset.delta < -5) nudge = { tipo: 'pánico', texto: 'Vendiste en plena baja. ¿Es una decisión por fundamentos o por miedo? Tu Asesor IA puede ayudarte a pensarlo.' };
+  else if (accion === 'COMPRA' && asset.delta > 10) nudge = { tipo: 'FOMO', texto: 'Compraste en plena suba. Ojo con el FOMO. ¿Lo charlamos con tu Asesor IA?' };
+  else nudge = null;
   renderDetail(container, store, ticker);
 }

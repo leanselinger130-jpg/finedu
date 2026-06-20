@@ -18,6 +18,7 @@ export function renderHome(container, { store }) {
     el('button', { class: 'btn btn-primary', onclick: go('sim') }, [el('span', { text: '📈' }), el('span', { html: 'Simulador<small>Operá sin riesgo en tiempo real</small>' })]),
     el('button', { class: 'btn btn-secondary', onclick: go('quiz') }, [el('span', { text: '🧠' }), el('span', { html: 'Aprender<small>Micro-lecciones tipo trivia</small>' })]),
     el('button', { class: 'btn btn-ai', onclick: () => window.dispatchEvent(new CustomEvent('finedu:toggle-chat')) }, [el('span', { text: '✦' }), el('span', { html: 'Asesor IA<small>Tu maestro y garante 24/7</small>' })]),
+    el('button', { class: 'btn btn-ai', onclick: () => { location.hash = '#/fraud'; } }, [el('span', { text: '🛡️' }), el('span', { html: 'Escudo anti-fraude<small>Verificá si una inversión es segura</small>' })]),
   ]);
 
   const mailInput = el('input', { type: 'email', placeholder: 'Tu email para enterarte del lanzamiento', class: 'finput', style: 'width:100%;padding:12px;border-radius:14px;border:1px solid var(--border);background:var(--card);color:var(--fg);margin-bottom:9px;' });
