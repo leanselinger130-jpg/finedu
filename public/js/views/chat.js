@@ -14,7 +14,7 @@ export function mountChat({ store }) {
     const mine = role === 'user';
     box.appendChild(el('div', {
       class: 'card',
-      style: `margin:0;${mine ? 'align-self:flex-end;background:var(--violet);color:#fff;' : 'background:#1a2140;'}`,
+      style: `margin:0;${mine ? 'align-self:flex-end;background:var(--violet);color:#fff;' : 'background:var(--chat-bot);'}`,
       text,
     }));
     box.scrollTop = box.scrollHeight;

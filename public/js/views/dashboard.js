@@ -31,6 +31,17 @@ export function renderDashboard(container, { store }) {
     el('p', { class: 'sub', style: 'font-size:12px;margin:0;', text: 'Vista de demostración para el broker · FINEDU v2' }),
   ]);
 
+  // ── Tasa de conversión interés → acción ───────────────────────────────────
+  const turnos = store.get('behavior.turnos') || 0;
+  const niveles = (store.get('progress.quizLevelsDone') || []).length;
+  const actividad = Math.max(1, turnos + niveles);
+  const convPct = Math.min(100, Math.round(((brokerSim + brokerQuiz) / actividad) * 100));
+  const convCard = el('div', { class: 'card', style: 'margin-bottom:12px;text-align:center;' }, [
+    el('div', { class: 'sub', style: 'font-size:11px;font-weight:600;', text: 'Conversión interés → acción (broker)' }),
+    el('div', { class: 'tnum', style: 'font-size:30px;font-weight:700;color:var(--brand);', text: convPct + '%' }),
+    el('div', { class: 'sub', style: 'font-size:11px;', text: `${brokerSim + brokerQuiz} clicks al broker sobre ${actividad} acciones educativas` }),
+  ]);
+
   // ── Grilla de métricas (2 columnas) ──────────────────────────────────────
   const metricsGrid = el('div', {
     style: 'display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;',
@@ -81,7 +92,7 @@ export function renderDashboard(container, { store }) {
     onclick: () => { location.hash = '#/home'; },
   });
 
-  container.append(headerCard, metricsGrid, iaBar, skinCard, backBtn);
+  container.append(headerCard, convCard, metricsGrid, iaBar, skinCard, backBtn);
 }
 
 // ─── Helper: tile de métrica individual ──────────────────────────────────────
